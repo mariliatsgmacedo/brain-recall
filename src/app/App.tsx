@@ -9,6 +9,8 @@ import { CyclesPage } from './pages/CyclesPage';
 import { AddTopicPage } from './pages/AddTopicPage';
 import { EditTopicPage } from './pages/EditTopicPage';
 import { TopicDetailsPage } from './pages/TopicDetailsPage';
+import { TopicsGroupsPage } from './pages/TopicsGroupsPage';
+import { GroupTopicsPage } from './pages/GroupTopicsPage';
 import { DASHBOARD_MAX_CYCLE_INDEX } from './config';
 import { buildTopicSlug } from './utils/topicSlug';
 
@@ -54,6 +56,14 @@ export default function App() {
           element={<TopicDetailsPage topics={topics} onCompleteReview={completeReview} onDelete={deleteTopic} />}
         />
         <Route path="/topico/:slug/editar" element={<EditTopicPage topics={topics} onUpdate={updateTopic} />} />
+        <Route
+          path="/temas"
+          element={<TopicsGroupsPage topics={topics} needsReview={sortedTopics.needsReview} onOpenTopic={handleOpenTopic} />}
+        />
+        <Route
+          path="/temas/:slug"
+          element={<GroupTopicsPage topics={topics} needsReview={sortedTopics.needsReview} onOpenTopic={handleOpenTopic} />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppLayout>
