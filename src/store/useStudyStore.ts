@@ -9,6 +9,7 @@ const STORAGE_KEY = 'brain-recall-storage-v3';
 interface StudyStoreState {
   topics: Topic[];
   addTopic: (title: string, description: string) => void;
+  updateTopic: (id: string, data: { title: string; description: string }) => void;
   completeReview: (id: string) => void;
   deleteTopic: (id: string) => void;
 }
@@ -32,6 +33,11 @@ export const useStudyStore = create<StudyStoreState>()(
               completedCycles: [],
             },
           ],
+        })),
+
+      updateTopic: (id, data) =>
+        set((state) => ({
+          topics: state.topics.map((topic) => (topic.id === id ? { ...topic, ...data } : topic)),
         })),
 
       completeReview: (id) =>
@@ -64,4 +70,3 @@ export const useStudyStore = create<StudyStoreState>()(
     },
   ),
 );
-

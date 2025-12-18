@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import MDEditor from '@uiw/react-md-editor';
 
 export function AddTopicForm({ onAdd }: { onAdd: (title: string, description: string) => void }) {
   const [title, setTitle] = useState('');
@@ -25,13 +26,18 @@ export function AddTopicForm({ onAdd }: { onAdd: (title: string, description: st
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <textarea
-          placeholder="Resumo do conteúdo estudado..."
-          rows={3}
-          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <div
+          className="rounded-xl border border-slate-200 bg-slate-50 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10"
+          data-color-mode="light"
+        >
+          <MDEditor
+            value={description}
+            onChange={(value) => setDescription(value ?? '')}
+            preview="edit"
+            height={180}
+            textareaProps={{ placeholder: 'Resumo do conteúdo estudado...' }}
+          />
+        </div>
         <button
           type="submit"
           className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-indigo-100"
@@ -43,4 +49,3 @@ export function AddTopicForm({ onAdd }: { onAdd: (title: string, description: st
     </section>
   );
 }
-

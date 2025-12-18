@@ -1,5 +1,6 @@
 import { CheckCircle, FileText, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import MDEditor from '@uiw/react-md-editor';
 import type { Topic } from '../../../domain/topic';
 import { Modal } from '../../../components/ui/Modal';
 
@@ -23,9 +24,9 @@ export function TopicDetailsModal({
               <FileText size={18} />
               <span className="text-xs font-bold uppercase tracking-widest">Resumo do Estudo</span>
             </div>
-            <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-              {topic.description || 'Nenhuma descrição fornecida para este tópico.'}
-            </p>
+            <div className="text-slate-700" data-color-mode="light">
+              <MDEditor.Markdown source={topic.description || 'Nenhuma descrição fornecida para este tópico.'} />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -69,4 +70,3 @@ export function TopicDetailsModal({
     </Modal>
   );
 }
-
