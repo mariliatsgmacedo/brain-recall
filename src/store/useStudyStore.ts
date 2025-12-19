@@ -12,6 +12,7 @@ interface StudyStoreState {
   updateTopic: (id: string, data: { title: string; description: string }) => void;
   completeReview: (id: string) => void;
   deleteTopic: (id: string) => void;
+  reset: () => void;
 }
 
 export const useStudyStore = create<StudyStoreState>()(
@@ -62,6 +63,11 @@ export const useStudyStore = create<StudyStoreState>()(
       deleteTopic: (id) =>
         set((state) => ({
           topics: state.topics.filter((topic) => topic.id !== id),
+        })),
+
+      reset: () =>
+        set(() => ({
+          topics: [],
         })),
     }),
     {

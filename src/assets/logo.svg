@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" fill="none">
+  <defs>
+    <linearGradient id="lg" x1="18" y1="14" x2="122" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1" />
+      <stop offset="1" stop-color="#A855F7" />
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="112" height="100" rx="26" fill="url(#lg)" opacity="0.15" />
+  <rect x="18" y="18" width="96" height="84" rx="20" fill="url(#lg)" />
+  <ellipse cx="66" cy="60" rx="36" ry="24" stroke="#EEF2FF" stroke-width="6" opacity="0.7" />
+  <ellipse cx="66" cy="60" rx="24" ry="34" stroke="#C7D2FE" stroke-width="4" opacity="0.8" />
+  <circle cx="96" cy="42" r="7" fill="#EEF2FF" stroke="#4338CA" stroke-width="3" />
+  <path d="M50 63 62 75 84 48" stroke="#F8FAFC" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="140" y="68" fill="#0F172A" font-size="32" font-weight="800" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">BrainRecall</text>
+</svg>
