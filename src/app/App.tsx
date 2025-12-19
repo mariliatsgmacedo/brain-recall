@@ -19,6 +19,10 @@ export default function App() {
   const sortedTopics = useSortedTopics(topics);
   const navigate = useNavigate();
 
+  const dashboardCurrent = useMemo(
+    () => sortedTopics.needsReview.filter((topic) => topic.currentCycle <= DASHBOARD_MAX_CYCLE_INDEX),
+    [sortedTopics.needsReview],
+  );
   const dashboardUpcoming = useMemo(
     () => sortedTopics.upcoming.filter((topic) => topic.currentCycle <= DASHBOARD_MAX_CYCLE_INDEX),
     [sortedTopics.upcoming],
@@ -38,11 +42,18 @@ export default function App() {
   };
 
   return (
-    <AppLayout topicsCount={topics.length}>
+    <AppLayout>
       <Routes>
         <Route
           path="/"
-          element={<DashboardPage topics={topics} upcoming={dashboardUpcoming} onOpenTopic={handleOpenTopic} />}
+          element={
+            <DashboardPage
+              topics={topics}
+              current={dashboardCurrent}
+              upcoming={dashboardUpcoming}
+              onOpenTopic={handleOpenTopic}
+            />
+          }
         />
         <Route
           path="/ciclos"

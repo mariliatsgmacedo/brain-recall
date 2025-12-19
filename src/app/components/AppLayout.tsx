@@ -1,10 +1,7 @@
 import type { ReactNode } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Plus } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-// import { Badge } from '../../components/ui/Badge';
-// import { REVIEW_INTERVALS_DAYS } from "../../domain/review";
 
-// export function AppLayout({ children, topicsCount }: { children: ReactNode; topicsCount: number }) {
 export function AppLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const isCyclesPage = location.pathname === "/ciclos";
@@ -48,19 +45,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
               >
                 Agrupados
               </Link>
+              <Link
+                to="/novo"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                <Plus size={16} />
+                Adicionar tópico
+              </Link>
             </nav>
-            {/* <Badge variant="info">{topicsCount} tópicos ativos</Badge> */}
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
-
-      {/* <footer className="max-w-6xl mx-auto px-6 py-12 text-center text-slate-400 text-xs border-t border-slate-200 mt-12">
-        Baseado na curva de retenção de Ebbinghaus • R1(
-        {REVIEW_INTERVALS_DAYS[0]}d), R7({REVIEW_INTERVALS_DAYS[1]}d), R15(
-        {REVIEW_INTERVALS_DAYS[2]}d), R30({REVIEW_INTERVALS_DAYS[3]}d).
-      </footer> */}
     </div>
   );
 }

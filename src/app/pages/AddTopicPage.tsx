@@ -5,7 +5,7 @@ export function AddTopicPage({ onAdd }: { onAdd: (title: string, description: st
   const navigate = useNavigate();
 
   return (
-    <section className="max-w-3xl mx-auto">
+    <section className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Novo estudo</p>

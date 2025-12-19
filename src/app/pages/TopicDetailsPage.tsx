@@ -80,7 +80,6 @@ export function TopicDetailsPage({
                   {topic.title}
                 </h2>
               </div>
-              {/* <Badge variant="info">Ciclo R{topic.currentCycle + 1}</Badge> */}
             </div>
             <div className="grid grid-cols-2 gap-4 mt-6">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">

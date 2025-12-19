@@ -34,7 +34,7 @@ export function AddTopicForm({ onAdd }: { onAdd: (title: string, description: st
             value={description}
             onChange={(value) => setDescription(value ?? '')}
             preview="edit"
-            height={180}
+            height={400}
             textareaProps={{ placeholder: 'Resumo do conteúdo estudado...' }}
           />
         </div>
