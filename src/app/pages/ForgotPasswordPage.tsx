@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useResetPasswordMutation } from '../api/auth';
+import { useResetPasswordMutation } from '../hooks/useAuth';
 
 export function ForgotPasswordPage() {
   const resetPassword = useResetPasswordMutation();

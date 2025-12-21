@@ -7,13 +7,13 @@ import {
   useUpdateTopicMutation,
   useCompleteReviewMutation,
   useDeleteTopicMutation,
-} from "./api/topics";
+} from "./hooks/useTopics";
 import {
   useLoginMutation,
   useSignupMutation,
   useMeQuery,
   logout as logoutAction,
-} from "./api/auth";
+} from "./hooks/useAuth";
 import { useSortedTopics } from "../features/topics/hooks/useSortedTopics";
 import type { Topic } from "../domain/topic";
 import { AppLayout } from "./components/AppLayout";
