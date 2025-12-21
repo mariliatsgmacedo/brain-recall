@@ -13,8 +13,8 @@ export function TopicDetailsPage({
   onDelete,
 }: {
   topics: Topic[];
-  onCompleteReview: (id: string) => void;
-  onDelete: (id: string) => void;
+  onCompleteReview: (id: string) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
 }) {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -105,8 +105,9 @@ export function TopicDetailsPage({
             <div className="flex flex-col gap-4">
               <button
                 onClick={() => {
-                  onCompleteReview(topic.id);
-                  navigate("/");
+                  Promise.resolve(onCompleteReview(topic.id))
+                    .then(() => navigate("/"))
+                    .catch(() => {});
                 }}
                 className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 transition-all"
               >
@@ -149,14 +150,17 @@ export function TopicDetailsPage({
             >
               Cancelar
             </button>
-            <button
-              onClick={() => {
-                onDelete(topic.id);
-                setShowDeleteModal(false);
-                navigate("/");
-              }}
-              className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold flex items-center gap-2 transition-colors"
-            >
+              <button
+                onClick={() => {
+                  Promise.resolve(onDelete(topic.id))
+                    .then(() => {
+                      setShowDeleteModal(false);
+                      navigate("/");
+                    })
+                    .catch(() => {});
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold flex items-center gap-2 transition-colors"
+              >
               <Trash2 size={16} />
               Excluir
             </button>

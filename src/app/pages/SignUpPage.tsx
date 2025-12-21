@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
-import { useStudyStore } from '../../store/useStudyStore';
+import type { UseMutationResult } from '@tanstack/react-query';
 
-export function SignUpPage() {
-  const { signup } = useAuthStore();
-  const resetTopics = useStudyStore((state) => state.reset);
+interface Props {
+  signupMutation: UseMutationResult<
+    { access_token: string; token_type: string },
+    Error,
+    { name: string; email: string; password: string }
+  >;
+}
+
+export function SignUpPage({ signupMutation }: Props) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,15 +26,13 @@ export function SignUpPage() {
       return;
     }
 
-    const result = signup({ name: name.trim(), email: email.trim(), password });
-    if (result.success) {
-      resetTopics();
-      setError(null);
-      navigate('/');
-      return;
-    }
-
-    setError(result.error || 'Não foi possível criar a conta.');
+    signupMutation
+      .mutateAsync({ name: name.trim(), email: email.trim(), password })
+      .then(() => {
+        setError(null);
+        navigate('/');
+      })
+      .catch((err) => setError(err.message || 'Não foi possível criar a conta.'));
   };
 
   return (
@@ -67,6 +70,7 @@ export function SignUpPage() {
             onChange={(event) => setPassword(event.target.value)}
             required
             minLength={6}
+            maxLength={72}
           />
         </label>
         <label className="grid gap-1 text-sm">
@@ -78,10 +82,14 @@ export function SignUpPage() {
             onChange={(event) => setConfirmPassword(event.target.value)}
             required
             minLength={6}
+            maxLength={72}
           />
         </label>
 
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {signupMutation.isPending ? (
+          <p className="text-sm text-slate-500">Criando conta...</p>
+        ) : null}
 
         <button
           type="submit"

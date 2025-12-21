@@ -58,7 +58,7 @@ export function PomodoroTimer() {
   const percent = Math.round(progress * 100);
 
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+    <div className="bg-white border border-slate-200 rounded-2xl p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Pomodoro</p>

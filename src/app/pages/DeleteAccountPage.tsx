@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useDeleteAccountMutation } from '../api/auth';
 
 export function DeleteAccountPage() {
-  const { deleteAccount, account, isAuthenticated } = useAuthStore();
+  const deleteAccountMutation = useDeleteAccountMutation();
   const navigate = useNavigate();
   const [confirmation, setConfirmation] = useState('');
 
   const handleDelete = (event: React.FormEvent) => {
     event.preventDefault();
     if (confirmation.trim().toLowerCase() !== 'excluir') return;
-    deleteAccount();
-    navigate('/');
+    deleteAccountMutation
+      .mutateAsync()
+      .then(() => navigate('/'))
+      .catch(() => {});
   };
 
   return (
@@ -49,9 +51,8 @@ export function DeleteAccountPage() {
 
       <div className="text-sm text-slate-500 mt-4 flex flex-col gap-1">
         <p className="text-slate-600">
-          Conta atual: <strong>{account ? account.email : 'Nenhuma conta ativa'}</strong>
-          {isAuthenticated ? ' (logado)' : ''}
-        </p>
+          Conta atual: <strong>sessão autenticada</strong>
+      </p>
         <Link to="/entrar" className="text-indigo-600 font-semibold hover:text-indigo-700">
           Voltar
         </Link>

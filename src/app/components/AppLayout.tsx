@@ -1,21 +1,27 @@
 import { useState, type ReactNode } from "react";
-import { LogOut, Plus } from "lucide-react";
+import { LogOut, Plus, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import icon from "../../assets/icon.svg";
-import { useAuthStore } from "../../store/useAuthStore";
 
 export function AppLayout({
   children,
   showNavigation = true,
   headerActions,
   showAddTopic = true,
+  isAuthenticated = false,
+  userName,
+  userEmail,
+  onLogout,
 }: {
   children: ReactNode;
   showNavigation?: boolean;
   headerActions?: ReactNode;
   showAddTopic?: boolean;
+  isAuthenticated?: boolean;
+  userName?: string;
+  userEmail?: string;
+  onLogout?: () => void;
 }) {
-  const { account, isAuthenticated, logout } = useAuthStore();
   const location = useLocation();
   const isCyclesPage = location.pathname === "/ciclos";
   const isGroupedPage = location.pathname.startsWith("/temas");
@@ -37,11 +43,12 @@ export function AppLayout({
     },
   ];
   const userInitial =
-    account?.name?.charAt(0)?.toUpperCase() ||
-    account?.email?.charAt(0)?.toUpperCase() ||
+    userName?.charAt(0)?.toUpperCase() ||
+    userEmail?.charAt(0)?.toUpperCase() ||
     "?";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogoutClick = () => {
     setIsMenuOpen(false);
@@ -50,7 +57,7 @@ export function AppLayout({
 
   const handleConfirmLogout = () => {
     setIsConfirmOpen(false);
-    logout();
+    onLogout?.();
   };
 
   return (
@@ -70,8 +77,8 @@ export function AppLayout({
                 </p>
               </div>
               {showNavigation ? (
-                <div className="flex items-center justify-between gap-3">
-                  <nav className="flex items-center gap-2 text-sm font-semibold p-1">
+                <>
+                  <nav className="hidden md:flex items-center gap-2 text-sm font-semibold p-1">
                     {navItems.map((item) => (
                       <Link
                         key={item.label}
@@ -86,7 +93,13 @@ export function AppLayout({
                       </Link>
                     ))}
                   </nav>
-                </div>
+                  <button
+                    onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                    className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/60 hover:bg-white text-slate-600 hover:text-indigo-600 transition-colors"
+                  >
+                    {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                  </button>
+                </>
               ) : null}
             </div>
 
@@ -100,7 +113,7 @@ export function AppLayout({
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
                     >
                       <Plus size={16} />
-                      Adicionar tópico
+                      <span className="hidden sm:inline">Adicionar tópico</span>
                     </Link>
                   ) : null}
                   <div className="relative">
@@ -130,6 +143,29 @@ export function AppLayout({
           </div>
         </div>
       </header>
+
+      {isMobileMenuOpen && showNavigation ? (
+        <div className="md:hidden bg-white border-b border-slate-200">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <nav className="flex flex-col gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                    item.active
+                      ? "bg-indigo-50 text-indigo-600"
+                      : "text-slate-600 hover:text-indigo-600 hover:bg-indigo-50"
+                  }`}
+                >
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
+      ) : null}
 
       <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
       {isConfirmOpen ? (

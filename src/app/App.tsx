@@ -1,6 +1,19 @@
 import { useMemo } from "react";
 import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { useStudyStore } from "../store/useStudyStore";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useTopicsQuery,
+  useCreateTopicMutation,
+  useUpdateTopicMutation,
+  useCompleteReviewMutation,
+  useDeleteTopicMutation,
+} from "./api/topics";
+import {
+  useLoginMutation,
+  useSignupMutation,
+  useMeQuery,
+  logout as logoutAction,
+} from "./api/auth";
 import { useSortedTopics } from "../features/topics/hooks/useSortedTopics";
 import type { Topic } from "../domain/topic";
 import { AppLayout } from "./components/AppLayout";
@@ -21,11 +34,30 @@ import { DeleteAccountPage } from "./pages/DeleteAccountPage";
 import { useAuthStore } from "../store/useAuthStore";
 
 export default function App() {
-  const { isAuthenticated } = useAuthStore();
-  const { topics, addTopic, updateTopic, completeReview, deleteTopic } =
-    useStudyStore();
-  const sortedTopics = useSortedTopics(topics);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { token } = useAuthStore();
+  const { data: me } = useMeQuery(Boolean(token));
+  const isAuthenticated = Boolean(token && me);
+  const userName = me?.name;
+  const userEmail = me?.email;
+
+  // TanStack Query gerencia cache e revalidação dos tópicos autenticados.
+  const topicsQuery = useTopicsQuery(Boolean(me));
+  const topics = topicsQuery.data || [];
+  const sortedTopics = useSortedTopics(topics);
+
+  const createTopic = useCreateTopicMutation();
+  const updateTopic = useUpdateTopicMutation();
+  const completeReviewMutation = useCompleteReviewMutation();
+  const deleteTopicMutation = useDeleteTopicMutation();
+  const loginMutation = useLoginMutation();
+  const signupMutation = useSignupMutation();
+  const handleLogout = () => {
+    logoutAction();
+    queryClient.clear();
+    navigate("/entrar");
+  };
 
   const dashboardCurrent = useMemo(
     () =>
@@ -63,7 +95,12 @@ export default function App() {
         path="/"
         element={
           isAuthenticated ? (
-            <AppLayout>
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
               <DashboardPage
                 topics={topics}
                 current={dashboardCurrent}
@@ -102,7 +139,7 @@ export default function App() {
         path="/entrar"
         element={
           <AppLayout showNavigation={false} showAddTopic={false}>
-            <SignInPage />
+            <SignInPage loginMutation={loginMutation} />
           </AppLayout>
         }
       />
@@ -111,7 +148,7 @@ export default function App() {
         path="/criar-conta"
         element={
           <AppLayout showNavigation={false} showAddTopic={false}>
-            <SignUpPage />
+            <SignUpPage signupMutation={signupMutation} />
           </AppLayout>
         }
       />
@@ -138,7 +175,12 @@ export default function App() {
         path="/ciclos"
         element={
           isAuthenticated ? (
-            <AppLayout>
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
               <CyclesPage
                 topics={allTopicsSorted}
                 needsReview={sortedTopics.needsReview}
@@ -154,8 +196,17 @@ export default function App() {
         path="/novo"
         element={
           isAuthenticated ? (
-            <AppLayout>
-              <AddTopicPage onAdd={addTopic} />
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
+              <AddTopicPage
+                onAdd={async (title, description) => {
+                  await createTopic.mutateAsync({ title, description });
+                }}
+              />
             </AppLayout>
           ) : (
             <Navigate to="/" replace />
@@ -166,11 +217,20 @@ export default function App() {
         path="/topico/:slug"
         element={
           isAuthenticated ? (
-            <AppLayout>
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
               <TopicDetailsPage
                 topics={topics}
-                onCompleteReview={completeReview}
-                onDelete={deleteTopic}
+                onCompleteReview={async (id) => {
+                  await completeReviewMutation.mutateAsync({ id });
+                }}
+                onDelete={async (id) => {
+                  await deleteTopicMutation.mutateAsync({ id });
+                }}
               />
             </AppLayout>
           ) : (
@@ -182,8 +242,22 @@ export default function App() {
         path="/topico/:slug/editar"
         element={
           isAuthenticated ? (
-            <AppLayout>
-              <EditTopicPage topics={topics} onUpdate={updateTopic} />
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
+              <EditTopicPage
+                topics={topics}
+                onUpdate={async (id, data) => {
+                  await updateTopic.mutateAsync({
+                    id,
+                    title: data.title,
+                    description: data.description,
+                  });
+                }}
+              />
             </AppLayout>
           ) : (
             <Navigate to="/" replace />
@@ -194,7 +268,12 @@ export default function App() {
         path="/temas"
         element={
           isAuthenticated ? (
-            <AppLayout>
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
               <TopicsGroupsPage
                 topics={topics}
                 needsReview={sortedTopics.needsReview}
@@ -210,7 +289,12 @@ export default function App() {
         path="/temas/:slug"
         element={
           isAuthenticated ? (
-            <AppLayout>
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
               <GroupTopicsPage
                 topics={topics}
                 needsReview={sortedTopics.needsReview}

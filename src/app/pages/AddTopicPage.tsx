@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { AddTopicForm } from '../../features/topics/components/AddTopicForm';
 
-export function AddTopicPage({ onAdd }: { onAdd: (title: string, description: string) => void }) {
+export function AddTopicPage({ onAdd }: { onAdd: (title: string, description: string) => void | Promise<void> }) {
   const navigate = useNavigate();
 
   return (
@@ -17,8 +17,9 @@ export function AddTopicPage({ onAdd }: { onAdd: (title: string, description: st
       </div>
       <AddTopicForm
         onAdd={(title, description) => {
-          onAdd(title, description);
-          navigate('/');
+          Promise.resolve(onAdd(title, description))
+            .then(() => navigate('/'))
+            .catch(() => {});
         }}
       />
     </section>

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useResetPasswordMutation } from '../api/auth';
 
 export function ForgotPasswordPage() {
-  const { resetPassword } = useAuthStore();
+  const resetPassword = useResetPasswordMutation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -12,15 +12,17 @@ export function ForgotPasswordPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const result = resetPassword(email.trim(), newPassword);
-    if (result.success) {
-      setError(null);
-      setMessage('Senha atualizada! Você pode entrar novamente.');
-      setTimeout(() => navigate('/entrar'), 800);
-      return;
-    }
-    setMessage(null);
-    setError(result.error || 'Não foi possível alterar a senha.');
+    resetPassword
+      .mutateAsync({ email: email.trim(), newPassword })
+      .then(() => {
+        setError(null);
+        setMessage('Senha atualizada! Você pode entrar novamente.');
+        setTimeout(() => navigate('/entrar'), 800);
+      })
+      .catch((err) => {
+        setMessage(null);
+        setError(err.message || 'Não foi possível alterar a senha.');
+      });
   };
 
   return (
@@ -50,11 +52,13 @@ export function ForgotPasswordPage() {
             onChange={(event) => setNewPassword(event.target.value)}
             required
             minLength={6}
+            maxLength={72}
           />
         </label>
 
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
+        {resetPassword.isPending ? <p className="text-sm text-slate-500">Enviando...</p> : null}
 
         <button
           type="submit"

@@ -9,7 +9,7 @@ export function EditTopicPage({
   onUpdate,
 }: {
   topics: Topic[];
-  onUpdate: (id: string, data: { title: string; description: string }) => void;
+  onUpdate: (id: string, data: { title: string; description: string }) => void | Promise<void>;
 }) {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -75,9 +75,12 @@ export function EditTopicPage({
           <button
             onClick={() => {
               if (!title.trim()) return;
-              onUpdate(topic.id, { title, description });
-              const newSlug = buildTopicSlug({ ...topic, title });
-              navigate(`/topico/${newSlug}`);
+              Promise.resolve(onUpdate(topic.id, { title, description }))
+                .then(() => {
+                  const newSlug = buildTopicSlug({ ...topic, title });
+                  navigate(`/topico/${newSlug}`);
+                })
+                .catch(() => {});
             }}
             className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors disabled:opacity-50"
             disabled={!title.trim()}
