@@ -13,56 +13,21 @@ import {
 } from "../hooks/useReviewFlow";
 import type { AnswerResult, OptionKey } from "../../domain/question";
 
-export function TopicDetailsPage({
-  topics,
-  onCompleteReview,
-  onDelete,
-}: {
+interface TopicDetailsProps {
   topics: Topic[];
   onCompleteReview: (id: string) => void | Promise<void>;
   onDelete: (id: string) => void | Promise<void>;
-}) {
+}
+
+export function TopicDetailsPage(props: TopicDetailsProps) {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const topicId = slug ? extractIdFromSlug(slug) : "";
-  const topic = topics.find((item) => item.id === topicId);
-  const reviewQuery = useNextReviewQuestion(topicId, Boolean(topic));
-  const answerMutation = useAnswerQuestionMutation(topicId);
-  const generateMutation = useGenerateQuestionMutation(topicId);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<OptionKey | null>(null);
-  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
-  const [contentUnlocked, setContentUnlocked] = useState(false);
-  const [generateError, setGenerateError] = useState<string | null>(null);
-
-  const reviewState = reviewQuery.data;
-  const activeQuestionsCount = reviewState?.activeQuestionsCount ?? 0;
-  const currentQuestion = reviewState?.question || null;
-  const isBlocked = reviewState
-    ? !reviewState.apiUnavailable && activeQuestionsCount === 0
-    : false;
-  const apiUnavailable = Boolean(reviewState?.apiUnavailable);
-  const answeredToday = Boolean(reviewState?.answeredToday);
-
-  useEffect(() => {
-    // Reset UI when a new question chega.
-    setSelectedOption(null);
-    setAnswerResult(null);
-    setContentUnlocked(false);
-  }, [currentQuestion?.id]);
-
-  useEffect(() => {
-    if (answeredToday) {
-      setContentUnlocked(true);
-    }
-  }, [answeredToday]);
+  const topic = props.topics.find((item) => item.id === topicId);
 
   if (!topic) {
     return (
       <section className="bg-white border border-slate-200 rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-slate-700">
-          Tópico não encontrado
-        </h2>
+        <h2 className="text-lg font-bold text-slate-700">Tópico não encontrado</h2>
         <p className="text-sm text-slate-500 mt-2">
           O tópico que você tentou abrir não existe ou foi removido.
         </p>
@@ -76,15 +41,46 @@ export function TopicDetailsPage({
     );
   }
 
+  return <TopicDetailsContent topic={topic} {...props} />;
+}
+
+function TopicDetailsContent({ topic, onCompleteReview, onDelete }: TopicDetailsProps & { topic: Topic }) {
+  const navigate = useNavigate();
+  const reviewQuery = useNextReviewQuestion(topic.id, true);
+  const answerMutation = useAnswerQuestionMutation(topic.id);
+  const generateMutation = useGenerateQuestionMutation(topic.id);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<OptionKey | null>(null);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
+  const [contentUnlocked, setContentUnlocked] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
+  const reviewState = reviewQuery.data;
+  const activeQuestionsCount = reviewState?.activeQuestionsCount ?? 0;
+  const currentQuestion = reviewState?.question || null;
+  const isBlocked = reviewState ? !reviewState.apiUnavailable && activeQuestionsCount === 0 : false;
+  const apiUnavailable = Boolean(reviewState?.apiUnavailable);
+  const answeredToday = Boolean(reviewState?.answeredToday);
+
+  useEffect(() => {
+    setSelectedOption(null);
+    setAnswerResult(null);
+    setContentUnlocked(false);
+  }, [currentQuestion?.id]);
+
+  useEffect(() => {
+    if (answeredToday) {
+      setContentUnlocked(true);
+    }
+  }, [answeredToday]);
+
   const handleAnswer = (optionKey: OptionKey) => {
     if (!currentQuestion || answerMutation.isPending) return;
     setSelectedOption(optionKey);
 
     answerMutation
-      .mutateAsync({
-        questionId: currentQuestion.id,
-        selectedOption: optionKey,
-      })
+      .mutateAsync({ questionId: currentQuestion.id, selectedOption: optionKey })
       .then((payload) => {
         setAnswerResult(payload.result);
         setContentUnlocked(true);
@@ -97,9 +93,7 @@ export function TopicDetailsPage({
     generateMutation
       .mutateAsync(topic.description ? { summary: topic.description } : {})
       .then(() => reviewQuery.refetch())
-      .catch((err) =>
-        setGenerateError(err.message || "Falha ao gerar pergunta.")
-      );
+      .catch((err) => setGenerateError(err.message || "Falha ao gerar pergunta."));
   };
 
   const showSummaryOverlay = !contentUnlocked && !apiUnavailable;
@@ -107,9 +101,7 @@ export function TopicDetailsPage({
   const reviewCompletedToday = answeredToday || Boolean(answerResult);
 
   const renderQuestionArea = () => {
-    if (answeredToday) {
-      return null;
-    }
+    if (answeredToday) return null;
 
     if (reviewQuery.isLoading) {
       return (
@@ -127,12 +119,8 @@ export function TopicDetailsPage({
           <div className="flex items-start gap-3">
             <div className="text-rose-500">⛔</div>
             <div className="space-y-2">
-              <p className="font-bold text-rose-700 text-sm">
-                Este tópico não possui perguntas ativas.
-              </p>
-              <p className="text-sm text-rose-700">
-                Para continuar revisando, gere automaticamente.
-              </p>
+              <p className="font-bold text-rose-700 text-sm">Este tópico não possui perguntas ativas.</p>
+              <p className="text-sm text-rose-700">Para continuar revisando, gere automaticamente.</p>
               <div className="flex flex-wrap gap-2 pt-2">
                 <button
                   type="button"
@@ -140,19 +128,11 @@ export function TopicDetailsPage({
                   disabled={generateMutation.isPending}
                   className="px-3 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-1 disabled:opacity-60"
                 >
-                  {generateMutation.isPending ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={14} />
-                  )}
+                  {generateMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                   Gerar perguntas automaticamente
                 </button>
               </div>
-              {generateError && (
-                <p className="text-xs text-rose-600 font-semibold">
-                  {generateError}
-                </p>
-              )}
+              {generateError && <p className="text-xs text-rose-600 font-semibold">{generateError}</p>}
             </div>
           </div>
         </div>
@@ -160,22 +140,14 @@ export function TopicDetailsPage({
     }
 
     if (!currentQuestion) {
-      return (
-        <p className="text-sm text-slate-500">
-          Nenhuma pergunta disponível agora. Tente novamente em instantes.
-        </p>
-      );
+      return <p className="text-sm text-slate-500">Nenhuma pergunta disponível agora. Tente novamente em instantes.</p>;
     }
 
     return (
       <div className="space-y-4">
         <div>
-          <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">
-            Pergunta objetiva
-          </p>
-          <h3 className="text-lg font-semibold text-slate-800">
-            {currentQuestion.question}
-          </h3>
+          <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Pergunta objetiva</p>
+          <h3 className="text-lg font-semibold text-slate-800">{currentQuestion.question}</h3>
         </div>
 
         <div className="grid gap-3">
@@ -183,10 +155,7 @@ export function TopicDetailsPage({
             const isSelected = selectedOption === option.key;
             const isCorrect = answerResult?.correctOption === option.key;
             const showFeedback = Boolean(answerResult);
-            const isWrongSelection =
-              showFeedback &&
-              answerResult?.selectedOption === option.key &&
-              !answerResult?.isCorrect;
+            const isWrongSelection = showFeedback && answerResult?.selectedOption === option.key && !answerResult?.isCorrect;
 
             return (
               <button
@@ -205,9 +174,7 @@ export function TopicDetailsPage({
                 } ${answerMutation.isPending ? "opacity-70" : ""}`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-500">
-                    {option.key}
-                  </span>
+                  <span className="text-xs font-bold text-slate-500">{option.key}</span>
                   <span className="text-sm">{option.text}</span>
                 </div>
               </button>
@@ -251,13 +218,9 @@ export function TopicDetailsPage({
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-indigo-600">
                   <BookOpen size={18} />
-                  <span className="text-xs font-bold uppercase tracking-widest">
-                    Avaliação do Tópico
-                  </span>
+                  <span className="text-xs font-bold uppercase tracking-widest">Avaliação do Tópico</span>
                 </div>
-                <div className="text-xs text-slate-500">
-                  Perguntas ativas: {activeQuestionsCount}
-                </div>
+                <div className="text-xs text-slate-500">Perguntas ativas: {activeQuestionsCount}</div>
               </div>
               {renderQuestionArea()}
             </div>
@@ -267,39 +230,23 @@ export function TopicDetailsPage({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-indigo-600">
                 <BookOpen size={18} />
-                <span className="text-xs font-bold uppercase tracking-widest">
-                  Resumo do Estudo
-                </span>
+                <span className="text-xs font-bold uppercase tracking-widest">Resumo do Estudo</span>
               </div>
-              <Link
-                to={`/topico/${buildTopicSlug(topic)}/editar`}
-                className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-              >
+              <Link to={`/topico/${buildTopicSlug(topic)}/editar`} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
                 Editar tópico
               </Link>
             </div>
             <div
-              className={`text-slate-700 transition-all ${
-                showSummaryOverlay
-                  ? "blur-sm select-none pointer-events-none"
-                  : ""
-              }`}
+              className={`text-slate-700 transition-all ${showSummaryOverlay ? "blur-sm select-none pointer-events-none" : ""}`}
               data-color-mode="light"
             >
-              <MDEditor.Markdown
-                source={
-                  topic.description ||
-                  "Nenhuma descrição fornecida para este tópico."
-                }
-              />
+              <MDEditor.Markdown source={topic.description || "Nenhuma descrição fornecida para este tópico."} />
             </div>
 
             {showSummaryOverlay && (
               <div className="absolute inset-0 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 text-center px-6">
                 <div className="text-2xl">🔒</div>
-                <p className="text-sm text-slate-700 font-semibold">
-                  Responda uma pergunta objetiva para liberar o resumo.
-                </p>
+                <p className="text-sm text-slate-700 font-semibold">Responda uma pergunta objetiva para liberar o resumo.</p>
               </div>
             )}
           </div>
@@ -309,30 +256,18 @@ export function TopicDetailsPage({
           <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Detalhes do Conteúdo
-                </p>
-                <h2 className="text-xl font-bold text-slate-800 mt-2">
-                  {topic.title}
-                </h2>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Detalhes do Conteúdo</p>
+                <h2 className="text-xl font-bold text-slate-800 mt-2">{topic.title}</h2>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-6">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                  Próxima Revisão
-                </span>
-                <span className="text-sm font-semibold text-slate-700">
-                  {new Date(topic.nextReview).toLocaleDateString("pt-BR")}
-                </span>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Próxima Revisão</span>
+                <span className="text-sm font-semibold text-slate-700">{new Date(topic.nextReview).toLocaleDateString("pt-BR")}</span>
               </div>
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                  Ciclo Atual
-                </span>
-                <span className="text-sm font-semibold text-slate-700">
-                  R{topic.currentCycle + 1}
-                </span>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ciclo Atual</span>
+                <span className="text-sm font-semibold text-slate-700">R{topic.currentCycle + 1}</span>
               </div>
             </div>
           </div>
@@ -351,10 +286,7 @@ export function TopicDetailsPage({
                 Marcar como Revisado
               </button>
 
-              <Link
-                to="/"
-                className="w-full py-3 rounded-xl text-center font-semibold text-slate-600 hover:text-indigo-600 transition-colors border border-slate-200"
-              >
+              <Link to="/" className="w-full py-3 rounded-xl text-center font-semibold text-slate-600 hover:text-indigo-600 transition-colors border border-slate-200">
                 Voltar
               </Link>
 
@@ -370,24 +302,15 @@ export function TopicDetailsPage({
           {answeredToday && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-800">
               <p className="font-semibold text-sm">Pergunta do dia respondida</p>
-              <p className="text-sm">
-                Você já respondeu a pergunta deste tópico hoje. Amanhã gere uma nova pergunta para liberar novamente.
-              </p>
+              <p className="text-sm">Você já respondeu a pergunta deste tópico hoje. Amanhã gere uma nova pergunta para liberar novamente.</p>
             </div>
           )}
         </div>
       </div>
 
-      <Modal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Excluir tópico"
-      >
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Excluir tópico">
         <div className="space-y-4">
-          <p className="text-slate-600">
-            Tem certeza que deseja excluir "{topic.title}"? Essa ação não pode
-            ser desfeita.
-          </p>
+          <p className="text-slate-600">Tem certeza que deseja excluir "{topic.title}"? Essa ação não pode ser desfeita.</p>
           <div className="flex justify-end gap-3">
             <button
               onClick={() => setShowDeleteModal(false)}
@@ -415,3 +338,4 @@ export function TopicDetailsPage({
     </section>
   );
 }
+

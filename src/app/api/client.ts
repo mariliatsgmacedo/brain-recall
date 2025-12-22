@@ -1,5 +1,6 @@
+import { API_BASE_URL } from "./endpoints";
+
 // Fetch helper centralizado para reuse de headers/token.
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 const AUTH_STORAGE_KEY = "brainrecall-token";
 
 export function getStoredToken(): string | null {

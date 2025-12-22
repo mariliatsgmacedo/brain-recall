@@ -32,12 +32,14 @@ import { SignUpPage } from "./pages/SignUpPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { DeleteAccountPage } from "./pages/DeleteAccountPage";
 import { useAuthStore } from "../store/useAuthStore";
+import { QuestionsBankPage } from "./pages/QuestionsBankPage";
 
 export default function App() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { token } = useAuthStore();
-  const { data: me } = useMeQuery(Boolean(token));
+  const { data: me, isLoading: isMeLoading } = useMeQuery(Boolean(token));
+  const isAuthLoading = Boolean(token) && isMeLoading && !me;
   const isAuthenticated = Boolean(token && me);
   const userName = me?.name;
   const userEmail = me?.email;
@@ -89,12 +91,26 @@ export default function App() {
     navigate(`/topico/${buildTopicSlug(topic)}`);
   };
 
+  const renderAuthSkeleton = () => (
+    <AppLayout isAuthenticated showAddTopic={false} headerActions={null}>
+      <div className="space-y-4">
+        <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="h-40 bg-white border border-slate-200 rounded-2xl animate-pulse" />
+          <div className="h-40 bg-white border border-slate-200 rounded-2xl animate-pulse" />
+        </div>
+      </div>
+    </AppLayout>
+  );
+
   return (
     <Routes>
       <Route
         path="/"
         element={
-          isAuthenticated ? (
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
             <AppLayout
               isAuthenticated={isAuthenticated}
               userName={userName}
@@ -138,43 +154,61 @@ export default function App() {
       <Route
         path="/entrar"
         element={
-          <AppLayout showNavigation={false} showAddTopic={false}>
-            <SignInPage loginMutation={loginMutation} />
-          </AppLayout>
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : (
+            <AppLayout showNavigation={false} showAddTopic={false}>
+              <SignInPage loginMutation={loginMutation} />
+            </AppLayout>
+          )
         }
       />
 
       <Route
         path="/criar-conta"
         element={
-          <AppLayout showNavigation={false} showAddTopic={false}>
-            <SignUpPage signupMutation={signupMutation} />
-          </AppLayout>
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : (
+            <AppLayout showNavigation={false} showAddTopic={false}>
+              <SignUpPage signupMutation={signupMutation} />
+            </AppLayout>
+          )
         }
       />
 
       <Route
         path="/esqueci-senha"
         element={
-          <AppLayout showNavigation={false} showAddTopic={false}>
-            <ForgotPasswordPage />
-          </AppLayout>
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : (
+            <AppLayout showNavigation={false} showAddTopic={false}>
+              <ForgotPasswordPage />
+            </AppLayout>
+          )
         }
       />
 
       <Route
         path="/cancelar-conta"
         element={
-          <AppLayout showNavigation={false} showAddTopic={false}>
-            <DeleteAccountPage />
-          </AppLayout>
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : (
+            <AppLayout showNavigation={false} showAddTopic={false}>
+              <DeleteAccountPage />
+            </AppLayout>
+          )
         }
       />
 
       <Route
         path="/ciclos"
         element={
-          isAuthenticated ? (
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
             <AppLayout
               isAuthenticated={isAuthenticated}
               userName={userName}
@@ -193,9 +227,30 @@ export default function App() {
         }
       />
       <Route
+        path="/banco-perguntas"
+        element={
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              userName={userName}
+              userEmail={userEmail}
+              onLogout={handleLogout}
+            >
+              <QuestionsBankPage />
+            </AppLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
         path="/novo"
         element={
-          isAuthenticated ? (
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
             <AppLayout
               isAuthenticated={isAuthenticated}
               userName={userName}
@@ -216,7 +271,9 @@ export default function App() {
       <Route
         path="/topico/:slug"
         element={
-          isAuthenticated ? (
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
             <AppLayout
               isAuthenticated={isAuthenticated}
               userName={userName}
@@ -241,7 +298,9 @@ export default function App() {
       <Route
         path="/topico/:slug/editar"
         element={
-          isAuthenticated ? (
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
             <AppLayout
               isAuthenticated={isAuthenticated}
               userName={userName}
@@ -267,7 +326,9 @@ export default function App() {
       <Route
         path="/temas"
         element={
-          isAuthenticated ? (
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
             <AppLayout
               isAuthenticated={isAuthenticated}
               userName={userName}
@@ -288,7 +349,9 @@ export default function App() {
       <Route
         path="/temas/:slug"
         element={
-          isAuthenticated ? (
+          isAuthLoading ? (
+            renderAuthSkeleton()
+          ) : isAuthenticated ? (
             <AppLayout
               isAuthenticated={isAuthenticated}
               userName={userName}

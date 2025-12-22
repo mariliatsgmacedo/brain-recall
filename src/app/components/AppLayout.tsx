@@ -25,11 +25,12 @@ export function AppLayout({
   const location = useLocation();
   const isCyclesPage = location.pathname === "/ciclos";
   const isGroupedPage = location.pathname.startsWith("/temas");
+  const isQuestionsBank = location.pathname.startsWith("/banco-perguntas");
   const navItems = [
     {
       label: "Dashboard",
       to: "/",
-      active: !isCyclesPage && !isGroupedPage,
+      active: !isCyclesPage && !isGroupedPage && !isQuestionsBank,
     },
     {
       label: "Ciclos",
@@ -40,6 +41,11 @@ export function AppLayout({
       label: "Agrupados",
       to: "/temas",
       active: isGroupedPage,
+    },
+    {
+      label: "Banco de Perguntas",
+      to: "/banco-perguntas",
+      active: isQuestionsBank,
     },
   ];
   const userInitial =
